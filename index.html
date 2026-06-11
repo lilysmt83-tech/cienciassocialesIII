@@ -386,15 +386,15 @@ let salidasPantalla=0;
 document.addEventListener('visibilitychange',()=>{
   if(document.hidden && document.getElementById('screen-exam').classList.contains('active')){
     salidasPantalla++;
-    if(salidasPantalla>=3){
-      // registrar en título para evidencia
-      document.title='⚠ Salida detectada – Examen CS';
-    }
   }
   if(!document.hidden && document.getElementById('screen-exam').classList.contains('active') && salidasPantalla>0){
-    let msg='⚠ Se detectó que saliste del examen.\n\nEsto quedará registrado en tu resultado.';
-    if(salidasPantalla>=3) msg='🚨 Has salido del examen '+salidasPantalla+' veces.\nEsto quedará registrado y será reportado a tu maestra.';
-    alert(msg);
+    if(salidasPantalla>=3){
+      // Entregar automáticamente sin opción de cancelar
+      alert('🚨 Salida número '+salidasPantalla+' detectada.\n\nEl examen se entregará automáticamente con las respuestas que llevas hasta ahora.');
+      entregarExamen(true);
+    } else {
+      alert('⚠ Salida '+salidasPantalla+' de 3 detectada.\n\nSi sales una vez más, el examen se entregará automáticamente con lo que llevas contestado.');
+    }
   }
 });
 
@@ -519,10 +519,10 @@ function selecMC(i){answers[current]=i;renderQ();}
 function navQ(dir){current=Math.max(0,Math.min(shuffled.length-1,current+dir));renderQ();}
 
 // ── ENTREGAR ───────────────────────────────────────────────────────
-function entregarExamen(){
+function entregarExamen(forzado){
   if(timerInterval) clearInterval(timerInterval);
   const sinResp=shuffled.filter((_,i)=>answers[i]===undefined).length;
-  if(sinResp>0&&segundosRestantes>0&&!confirm(`Tienes ${sinResp} pregunta(s) sin responder. ¿Entregar de todas formas?`)) return;
+  if(!forzado && sinResp>0 && segundosRestantes>0 && !confirm(`Tienes ${sinResp} pregunta(s) sin responder. ¿Entregar de todas formas?`)) return;
   let correctas=0;
   shuffled.forEach((q,i)=>{if(answers[i]===q.answer) correctas++;});
   const total=shuffled.length;
