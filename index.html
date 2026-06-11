@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Examen 3er Parcial – Ciencias Sociales III</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#f4f5f7;color:#1a1a2e;font-size:16px}
+  .topbar{background:#6a1b4d;color:#fff;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+  .topbar h1{font-size:14px;font-weight:600;flex:1}
+  .prog-text{font-size:12px;opacity:.8;white-space:nowrap;margin-left:8px}
+  .timer{font-size:13px;font-weight:700;padding:4px 10px;border-radius:8px;background:rgba(255,255,255,.15);margin-left:8px;white-space:nowrap}
+  .timer.warning{background:#e65100;animation:parpadeo 1s infinite}
+  .timer.danger{background:#c62828;animation:parpadeo .5s infinite}
+  @keyframes parpadeo{0%,100%{opacity:1}50%{opacity:.4}}
+  .prog-bar{height:3px;background:rgba(255,255,255,.2)}
+  .prog-fill{height:3px;background:#f48fb1;transition:width .4s}
+  .screen{display:none;min-height:100vh}
+  .screen.active{display:block}
+
+  /* PORTADA */
+  .cover{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 20px;text-align:center;background:linear-gradient(160deg,#6a1b4d 0%,#4a0e35 100%)}
+  .cover .logo{font-size:42px;margin-bottom:16px}
+  .cover h1{color:#fff;font-size:20px;font-weight:700;margin-bottom:4px}
+  .cover .sub{color:#f8bbd0;font-size:13px;margin-bottom:28px}
+  .cover .card{background:#fff;border-radius:16px;padding:28px 22px;width:100%;max-width:420px}
+  .cover label{display:block;text-align:left;font-size:13px;color:#555;margin-bottom:5px;font-weight:600}
+  .cover input, .cover select{width:100%;padding:12px 14px;border:1.5px solid #ddd;border-radius:10px;font-size:15px;outline:none;transition:.2s;margin-bottom:14px;background:#fff;color:#1a1a2e}
+  .cover input:focus,.cover select:focus{border-color:#6a1b4d}
+  .instrucciones{background:#fce4ec;border-radius:10px;padding:14px;margin:4px 0 16px;text-align:left}
+  .instrucciones p{font-size:13px;color:#6a1b4d;line-height:1.8}
+  .btn-start{width:100%;padding:14px;background:#6a1b4d;color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer}
+  .btn-start:disabled{background:#aaa;cursor:not-allowed}
+  .err-msg{color:#c62828;font-size:13px;margin:-10px 0 10px;display:none;text-align:left}
+
+  /* PREGUNTAS */
+  .q-wrap{padding:16px 16px 130px}
+  .q-card{background:#fff;border-radius:14px;padding:20px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  .q-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:14px}
+  .q-num{background:#6a1b4d;color:#fff;border-radius:8px;width:30px;height:30px;min-width:30px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+  .q-badge{font-size:11px;padding:3px 9px;border-radius:20px;font-weight:600;display:inline-block;margin-bottom:4px;background:#fce4ec;color:#6a1b4d}
+  .q-text{font-size:15px;color:#1a1a2e;line-height:1.6}
+  .q-tema{font-size:11px;color:#999;margin-bottom:6px}
+  .opt{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;border:1.5px solid #e8e8e8;border-radius:10px;margin-bottom:8px;cursor:pointer;transition:.15s;background:#fff;-webkit-tap-highlight-color:transparent}
+  .opt:active{background:#fce4ec}
+  .opt.selected{border-color:#6a1b4d;background:#fce4ec}
+  .opt-circle{width:22px;height:22px;min-width:22px;border-radius:50%;border:2px solid #ccc;display:flex;align-items:center;justify-content:center;transition:.15s;margin-top:1px}
+  .opt.selected .opt-circle{border-color:#6a1b4d;background:#6a1b4d}
+  .opt.selected .opt-circle::after{content:'';width:8px;height:8px;background:#fff;border-radius:50%;display:block}
+  .opt-text{font-size:14px;color:#333;line-height:1.5}
+
+  /* NAV */
+  .nav-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #eee;padding:12px 16px;display:flex;gap:10px;align-items:center;z-index:100}
+  .q-indicator{font-size:13px;color:#666;flex:1;text-align:center}
+  .btn-nav{padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;border:none}
+  .btn-prev{background:#f0f0f0;color:#444}
+  .btn-prev:disabled{opacity:.35;cursor:default}
+  .btn-next{background:#6a1b4d;color:#fff}
+  .btn-submit{background:#2e7d32;color:#fff;padding:12px 18px;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;border:none}
+
+  /* DONE */
+  .done-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:32px 20px;text-align:center;background:#f4f5f7}
+  .done-icon{width:80px;height:80px;background:#2e7d32;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:36px;color:#fff}
+  .done-screen h2{font-size:22px;color:#1a1a2e;margin-bottom:8px}
+  .done-screen p{color:#666;font-size:14px;max-width:300px;line-height:1.6}
+
+  /* PASS */
+  .pass-wrap{background:#f4f5f7;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+  .pass-card{background:#fff;border-radius:14px;padding:28px 24px;max-width:340px;width:100%;box-shadow:0 2px 12px rgba(0,0,0,.1);text-align:center}
+  .pass-card .lock{font-size:40px;margin-bottom:12px}
+  .pass-card h3{font-size:18px;margin-bottom:16px;color:#6a1b4d}
+  .pass-card input{width:100%;padding:12px;border:1.5px solid #ddd;border-radius:10px;font-size:16px;text-align:center;outline:none;margin-bottom:8px}
+  .pass-card input:focus{border-color:#6a1b4d}
+  .btn-pass{width:100%;padding:13px;background:#6a1b4d;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer}
+  .pass-err{color:#c62828;font-size:13px;margin-top:6px;display:none}
+  .btn-cancel{width:100%;padding:11px;background:#f0f0f0;color:#444;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-top:8px}
+
+  /* RESULTADOS */
+  .results-screen{padding:20px;max-width:720px;margin:0 auto;padding-bottom:40px}
+  .results-screen h2{font-size:20px;font-weight:700;margin-bottom:16px;color:#6a1b4d}
+  .stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px}
+  .stat-box{background:#fff;border-radius:12px;padding:16px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+  .stat-n{font-size:28px;font-weight:700;color:#6a1b4d}
+  .stat-l{font-size:12px;color:#888;margin-top:2px}
+  .filter-bar{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap}
+  .filter-btn{padding:7px 14px;border-radius:20px;font-size:13px;border:1.5px solid #ddd;cursor:pointer;background:#fff;color:#555}
+  .filter-btn.active{background:#6a1b4d;color:#fff;border-color:#6a1b4d}
+  .result-row{background:#fff;border-radius:10px;padding:12px 16px;margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .rname{font-weight:600;font-size:14px;flex:1;min-width:100px}
+  .rcode{font-size:11px;color:#aaa;font-family:monospace}
+  .rgroup{font-size:12px;color:#6a1b4d;font-weight:600;background:#fce4ec;padding:2px 8px;border-radius:10px}
+  .rscore{font-size:14px;color:#555}
+  .pill{font-size:12px;padding:4px 12px;border-radius:20px;font-weight:700}
+  .pill-pass{background:#e8f5e9;color:#1b5e20}
+  .pill-fail{background:#ffebee;color:#b71c1c}
+  .btn-export{padding:12px 22px;background:#6a1b4d;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;margin-right:8px}
+  .btn-back{padding:12px 22px;background:#eee;color:#333;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer}
+
+  .sending-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:999}
+  .sending-box{background:#fff;border-radius:14px;padding:28px 32px;text-align:center}
+  .sending-box p{font-size:15px;color:#6a1b4d;font-weight:600;margin-top:10px}
+  .spinner{width:40px;height:40px;border:4px solid #e0e0e0;border-top-color:#6a1b4d;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- PORTADA -->
+<div id="screen-cover" class="screen active">
+  <div class="cover">
+    <div class="logo">🌎</div>
+    <h1>3er Parcial – Ciencias Sociales III</h1>
+    <p class="sub">Nivel Medio Superior</p>
+    <div class="card">
+      <label>Nombre completo</label>
+      <input type="text" id="student-name" placeholder="Escribe tu nombre y apellidos" autocomplete="off">
+      <div id="name-err" class="err-msg">⚠ Escribe tu nombre completo.</div>
+
+      <label>Grupo</label>
+      <select id="student-group">
+        <option value="">-- Selecciona tu grupo --</option>
+        <option value="4toAP">4to AP</option>
+        <option value="4toAO">4to AO</option>
+        <option value="4toBSPP">4to BSPP</option>
+      </select>
+      <div id="group-err" class="err-msg">⚠ Selecciona tu grupo.</div>
+
+      <label>Código de acceso</label>
+      <input type="text" id="student-code" placeholder="Ej. CS-001" autocomplete="off" style="text-transform:uppercase;letter-spacing:2px">
+      <div id="code-err" class="err-msg">⚠ Código inválido o ya utilizado.</div>
+
+      <div class="instrucciones">
+        <p>📋 Lee cada pregunta con cuidado.<br>
+        🔀 Te saldrán 20 preguntas en orden aleatorio.<br>
+        ⏱ Tienes 30 minutos para contestar.<br>
+        🚫 No verás tu calificación al terminar.<br>
+        🔑 Tu código solo funciona una vez.</p>
+      </div>
+      <button class="btn-start" id="btn-start" onclick="iniciarExamen()">Comenzar examen</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXAMEN -->
+<div id="screen-exam" class="screen">
+  <div class="topbar">
+    <h1>Ciencias Sociales III – 3P</h1>
+    <span class="prog-text" id="prog-text">1/20</span>
+    <span class="timer" id="timer">⏱ 30:00</span>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:5%"></div></div>
+  <div class="q-wrap" id="q-wrap"></div>
+  <div class="nav-bar">
+    <button class="btn-nav btn-prev" id="btn-prev" onclick="navQ(-1)" disabled>← Ant</button>
+    <span class="q-indicator" id="q-indicator">1 de 20</span>
+    <button class="btn-nav btn-next" id="btn-next" onclick="navQ(1)">Sig →</button>
+  </div>
+</div>
+
+<!-- DONE -->
+<div id="screen-done" class="screen">
+  <div class="done-screen">
+    <div class="done-icon">✓</div>
+    <h2>Examen entregado</h2>
+    <p>Tu examen fue registrado correctamente. Tu maestra te comunicará los resultados cuando corresponda.</p>
+    <p style="margin-top:16px;font-size:13px;color:#aaa">Puedes cerrar esta página.</p>
+  </div>
+</div>
+
+<!-- CONTRASEÑA -->
+<div id="screen-pass" class="screen">
+  <div class="pass-wrap">
+    <div class="pass-card">
+      <div class="lock">🔒</div>
+      <h3>Acceso a resultados</h3>
+      <input type="password" id="pass-input" placeholder="Contraseña de maestra" onkeydown="if(event.key==='Enter')verificarPass()">
+      <div id="pass-err" class="pass-err">Contraseña incorrecta.</div>
+      <button class="btn-pass" onclick="verificarPass()">Entrar</button>
+      <button class="btn-cancel" onclick="showScreen('screen-cover')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- RESULTADOS -->
+<div id="screen-results" class="screen">
+  <div class="results-screen">
+    <h2>📊 Resultados – Ciencias Sociales 3P</h2>
+    <div class="stat-grid" id="stat-grid"></div>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filtrarGrupo('todos',this)">Todos</button>
+      <button class="filter-btn" onclick="filtrarGrupo('4toAP',this)">4to AP</button>
+      <button class="filter-btn" onclick="filtrarGrupo('4toAO',this)">4to AO</button>
+      <button class="filter-btn" onclick="filtrarGrupo('4toBSPP',this)">4to BSPP</button>
+    </div>
+    <div id="results-list"></div>
+    <div style="margin-top:16px">
+      <button class="btn-export" onclick="exportarCSV()">⬇ Exportar CSV</button>
+      <button class="btn-back" onclick="showScreen('screen-cover')">← Volver</button>
+    </div>
+  </div>
+</div>
+
+<div class="sending-overlay" id="sending-overlay">
+  <div class="sending-box">
+    <div class="spinner"></div>
+    <p>Guardando resultado...</p>
+  </div>
+</div>
+
+<script>
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbzYN-dJn0q7CmzgYz3ssGdypUZnCVrRP95DLIVpCQbYzFdKeOJuF1RCXF2dBMn5lZgr/exec';
+const PASS='profe2025';
+const PASSING_SCORE=60;
+const CODIGOS_VALIDOS=['CS-000',...Array.from({length:135},(_,i)=>'CS-'+String(i+1).padStart(3,'0'))];
+let codigosUsados=JSON.parse(sessionStorage.getItem('csUsados')||'[]');
+
+// ── BANCO DE 50 PREGUNTAS ──────────────────────────────────────────
+const BANCO=[
+  // PODERES FÁCTICOS (13 preguntas)
+  {tema:'Poderes Fácticos',
+   texto:'¿Qué es un poder fáctico?',
+   opts:['Un poder establecido en la Constitución','Un grupo que ejerce influencia real sobre decisiones políticas al margen de las normas jurídicas','Un organismo internacional de supervisión','Un poder reconocido por el Estado de derecho'],answer:1},
+  {tema:'Poderes Fácticos',
+   texto:'¿Cuál de los siguientes es considerado el "cuarto poder"?',
+   opts:['Las ONGs','El narcotráfico','Los medios de comunicación','Los grupos empresariales'],answer:2},
+  {tema:'Poderes Fácticos',
+   texto:'¿Qué mecanismo usan principalmente los grupos empresariales para influir en el Estado?',
+   opts:['Movilización de fieles','Lobby, financiamiento político y amenaza de desinversión','Publicación de informes internacionales','Violencia y corrupción directa'],answer:1},
+  {tema:'Poderes Fácticos',
+   texto:'¿Qué ocurre con el principio de igualdad ante la ley cuando los poderes fácticos son muy fuertes?',
+   opts:['Se fortalece porque el Estado se vuelve más eficiente','Se erosiona porque las normas se aplican de forma selectiva','Se mantiene intacto gracias a la Constitución','Desaparece automáticamente del texto legal'],answer:1},
+  {tema:'Poderes Fácticos',
+   texto:'¿Qué es la "puerta giratoria" como mecanismo de poder?',
+   opts:['El sistema por el que los carteles rotan el control territorial','La migración de ejecutivos entre el sector privado y el gobierno','El proceso por el que los medios alternan entre apoyar y atacar a un gobierno','El financiamiento alterno de ONGs a partidos políticos'],answer:1},
+  {tema:'Poderes Fácticos',
+   texto:'¿Cómo influye la Iglesia en el ámbito político según el material?',
+   opts:['Mediante financiamiento de campañas electorales','A través de la legitimidad moral y la movilización de fieles','Con la publicación de informes internacionales','Mediante el control de medios de comunicación'],answer:1},
+  {tema:'Poderes Fácticos',
+   texto:'¿Qué es el "framing" en el contexto de los medios de comunicación?',
+   opts:['El financiamiento de campañas mediáticas','La construcción de narrativas que enmarcan cómo se interpreta un hecho','La censura directa de información','La concentración de medios en pocas empresas'],answer:1},
+  {tema:'Poderes Fácticos',
+   texto:'Cuando el narcotráfico sustituye al Estado en zonas sin presencia gubernamental, ¿qué tipo de normas aplica?',
+   opts:['Normas constitucionales informales','Normas fácticas paralelas no legitimadas democráticamente','Normas internacionales de derechos humanos','Normas emitidas por el Poder Judicial local'],answer:1},
+  {tema:'Poderes Fácticos',
+   texto:'¿Cuál es la diferencia entre poder formal y poder fáctico?',
+   opts:['El poder formal lo tienen los ricos; el fáctico los pobres','El poder formal está escrito en la ley; el fáctico actúa con o sin legitimidad legal','El poder formal es democrático; el fáctico siempre es ilegítimo','No hay diferencia práctica entre ambos'],answer:1},
+  {tema:'Poderes Fácticos',
+   texto:'¿Cuál es el impacto principal del narcotráfico como poder fáctico según la tabla comparativa?',
+   opts:['Bloqueo de reformas legislativas','Agenda setting internacional','Corrupción institucional y zonas sin Estado','Veto moral a reformas civiles'],answer:2},
+  {tema:'Poderes Fácticos',
+   texto:'¿Qué área del Estado es la más afectada por los poderes fácticos en conjunto según los datos del material?',
+   opts:['Economía','Normas jurídicas','Organización social','Derechos ciudadanos'],answer:1},
+  {tema:'Poderes Fácticos',
+   texto:'¿Qué diferencia existe entre una ONG que apoya al Estado y una que lo presiona?',
+   opts:['El tamaño de su presupuesto','Si recibe o no financiamiento internacional','Si actúa como aliado en políticas o como contrapeso crítico','Si tiene o no personalidad jurídica'],answer:2},
+  {tema:'Poderes Fácticos',
+   texto:'¿Cuál es el mecanismo de influencia principal de los medios de comunicación como poder fáctico?',
+   opts:['Violencia y corrupción','Construcción de narrativas y opinión pública','Lobby y financiamiento político','Movilización de fieles y legitimidad moral'],answer:1},
+
+  // MIGRACIÓN (13 preguntas)
+  {tema:'Migraciones',
+   texto:'¿Qué tipo de migración implica el cruce de fronteras nacionales de forma documentada o irregular?',
+   opts:['Migración campo-ciudad','Migración entre ciudades','Migración internacional','Fuga de cerebros'],answer:2},
+  {tema:'Migraciones',
+   texto:'¿Qué son las remesas?',
+   opts:['Documentos migratorios oficiales','Dinero enviado por migrantes a sus familias en el país de origen','Ayudas del gobierno a migrantes deportados','Certificados de residencia permanente'],answer:1},
+  {tema:'Migraciones',
+   texto:'¿Qué es la "fuga de cerebros"?',
+   opts:['La emigración de personas mayores a países con mejor sistema de salud','La emigración de profesionistas y especialistas a países con mejores salarios','El desplazamiento forzado por conflictos armados','La migración de jóvenes del campo a la ciudad'],answer:1},
+  {tema:'Migraciones',
+   texto:'¿Cuál es la principal diferencia entre un migrante y un refugiado?',
+   opts:['El migrante cruza fronteras; el refugiado no','El refugiado se mueve por elección; el migrante por fuerza','El refugiado es forzado a abandonar su hogar por conflictos o violencia; el migrante elige moverse','No hay diferencia legal entre ambos'],answer:2},
+  {tema:'Migraciones',
+   texto:'¿Qué concepto describe el cambio de posición de un individuo en la estructura social?',
+   opts:['Desigualdad estructural','Movilidad social','Segregación socioespacial','Gentrificación'],answer:1},
+  {tema:'Migraciones',
+   texto:'¿Qué grupos enfrentan riesgos diferenciados y mayor exposición a la explotación al migrar?',
+   opts:['Profesionistas y técnicos','Mujeres, niños, indígenas y comunidad LGBTQ+','Funcionarios gubernamentales','Empresarios y comerciantes'],answer:1},
+  {tema:'Migraciones',
+   texto:'¿Qué tipo de migración describe el desplazamiento de zonas rurales a centros urbanos dentro del mismo país?',
+   opts:['Migración internacional','Fuga de cerebros','Migración campo-ciudad','Migración entre ciudades'],answer:2},
+  {tema:'Migraciones',
+   texto:'¿Cuál de los siguientes es un ejemplo de fuga de cerebros según el material?',
+   opts:['Familias oaxaqueñas que migran a la Ciudad de México','Médicos e ingenieros mexicanos que trabajan en Canadá o España','Familias centroamericanas que solicitan asilo en México','Jóvenes que se trasladan de Oaxaca a Monterrey por empleos'],answer:1},
+  {tema:'Migraciones',
+   texto:'¿Qué postura del Estado frente a la migración plantea la postura A del debate del material?',
+   opts:['Regular y restringir los flujos migratorios para proteger el orden interno','Facilitar la libre movilidad como respuesta a las desigualdades','Expulsar a todos los migrantes irregulares','Ignorar el fenómeno migratorio'],answer:1},
+  {tema:'Migraciones',
+   texto:'¿Qué argumento utiliza la postura A (facilitar migración) en el debate del material?',
+   opts:['La fuga de cerebros debilita al país emisor','El Estado debe garantizar la seguridad interior','La libre movilidad es un derecho humano fundamental','Las normas jurídicas protegen a los ciudadanos nacionales'],answer:2},
+  {tema:'Migraciones',
+   texto:'¿Qué efecto tienen las remesas según el material?',
+   opts:['Generan dependencia económica sin beneficio real','Reducen la pobreza en las comunidades de origen','Provocan inflación en las zonas rurales','Solo benefician a los bancos internacionales'],answer:1},
+  {tema:'Migraciones',
+   texto:'¿Cuál de los siguientes casos es un ejemplo de desplazados o refugiados?',
+   opts:['Un arquitecto de Guadalajara que se muda a Monterrey por trabajo','Un investigador mexicano que obtiene una beca en Alemania','Familias sirias que huyen de un conflicto armado','Campesinos oaxaqueños que buscan trabajo en Sonora'],answer:2},
+  {tema:'Migraciones',
+   texto:'¿Qué describe la desigualdad estructural en el contexto de las migraciones?',
+   opts:['Diferencias individuales de habilidades entre migrantes','Brechas económicas y sociales producto de sistemas que las perpetúan','Diferencias culturales entre países de origen y destino','La falta de documentos migratorios'],answer:1},
+
+  // DERECHOS HUMANOS (12 preguntas)
+  {tema:'Derechos Humanos',
+   texto:'¿Cuántas generaciones de derechos humanos existen según el material?',
+   opts:['Dos','Tres','Cuatro','Cinco'],answer:1},
+  {tema:'Derechos Humanos',
+   texto:'¿Qué protegen los derechos de primera generación?',
+   opts:['Los derechos colectivos y ambientales','La libertad individual frente al Estado','Las condiciones mínimas de vida digna','El derecho al medio ambiente sano'],answer:1},
+  {tema:'Derechos Humanos',
+   texto:'¿Cuál de los siguientes es un derecho de segunda generación (DESC)?',
+   opts:['Derecho al voto','Derecho al medio ambiente sano','Derecho a la educación de calidad','Libertad de expresión'],answer:2},
+  {tema:'Derechos Humanos',
+   texto:'¿Qué significa la universalidad de los derechos humanos?',
+   opts:['Que solo aplican en países democráticos','Que corresponden a toda persona por el solo hecho de ser humana','Que los estados pueden elegir cuáles respetar','Que solo los ciudadanos adultos los poseen'],answer:1},
+  {tema:'Derechos Humanos',
+   texto:'¿Qué principio establece que no hay jerarquía entre los derechos humanos?',
+   opts:['Universalidad','Progresividad','Indivisibilidad','Subsidiariedad'],answer:2},
+  {tema:'Derechos Humanos',
+   texto:'¿Qué es un "agente crítico" según el material de derechos humanos?',
+   opts:['Un funcionario que critica al gobierno','Un sujeto que analiza, cuestiona y actúa frente a las injusticias sociales','Un periodista de investigación independiente','Un abogado especializado en derechos humanos'],answer:1},
+  {tema:'Derechos Humanos',
+   texto:'¿Cuál de los siguientes es un desafío persistente en el siglo XXI según el material?',
+   opts:['Mayor ratificación de tratados internacionales','Reconocimiento del matrimonio igualitario','Feminicidios y violencia de género en aumento en América Latina','Acceso masivo a educación básica'],answer:2},
+  {tema:'Derechos Humanos',
+   texto:'¿Qué son los derechos de tercera generación?',
+   opts:['Derechos civiles y políticos surgidos en el siglo XVIII','Derechos económicos, sociales y culturales','Derechos colectivos que trascienden al individuo ante problemas globales','Derechos exclusivos de los ciudadanos nacionales'],answer:2},
+  {tema:'Derechos Humanos',
+   texto:'¿Qué postura A defiende en el debate sobre derechos humanos del material?',
+   opts:['Se necesitan cambios estructurales en el sistema económico','El marco jurídico de derechos humanos es suficiente para garantizar el bienestar','Los derechos humanos son letra muerta sin redistribución económica','Las élites usan la ley para proteger sus privilegios'],answer:1},
+  {tema:'Derechos Humanos',
+   texto:'¿Qué organismo internacional se menciona en el material como parte del sistema de protección de derechos humanos?',
+   opts:['FMI (Fondo Monetario Internacional)','CIDH (Comisión Interamericana de Derechos Humanos)','OTAN','Banco Mundial'],answer:1},
+  {tema:'Derechos Humanos',
+   texto:'¿Qué describe la desigualdad estructural en el contexto de los derechos humanos?',
+   opts:['Diferencias individuales de capacidad entre personas','Brechas económicas y sociales producidas por sistemas jurídicos y políticos que las perpetúan','La falta de leyes en países en desarrollo','Las diferencias culturales entre naciones'],answer:1},
+  {tema:'Derechos Humanos',
+   texto:'¿Cuál de los siguientes es un avance reconocido en derechos humanos según el material?',
+   opts:['Aumento de feminicidios en América Latina','Crisis climática que amenaza el derecho al agua','Agenda 2030 y Objetivos de Desarrollo Sostenible','Brecha digital que excluye a millones'],answer:2},
+
+  // CRECIMIENTO DEMOGRÁFICO (12 preguntas)
+  {tema:'Crecimiento Demográfico',
+   texto:'¿Qué es la gentrificación según el material?',
+   opts:['Un programa habitacional del gobierno para zonas marginadas','El proceso por el cual barrios populares son desplazados por población de mayor poder adquisitivo','La construcción de vivienda social en la periferia','Un fenómeno de migración campo-ciudad'],answer:1},
+  {tema:'Crecimiento Demográfico',
+   texto:'¿Cuántas viviendas de déficit registra México según los datos del material (INEGI 2020)?',
+   opts:['Más de 3 millones','Más de 6 millones','Más de 9 millones','Más de 12 millones'],answer:2},
+  {tema:'Crecimiento Demográfico',
+   texto:'¿Qué porcentaje de la población mexicana vive en zonas urbanas según el material?',
+   opts:['50%','65%','75%','85%'],answer:2},
+  {tema:'Crecimiento Demográfico',
+   texto:'¿Qué es la segregación socioespacial?',
+   opts:['La división de ciudades en zonas con y sin acceso a servicios y oportunidades','La construcción de bardas entre colonias ricas y pobres','Un fenómeno exclusivo de países en guerra','La separación de zonas industriales de zonas habitacionales'],answer:0},
+  {tema:'Crecimiento Demográfico',
+   texto:'¿Qué programa habitacional mexicano se menciona en el material?',
+   opts:['IMSS','INFONAVIT','CONAVI','SEDESOL'],answer:1},
+  {tema:'Crecimiento Demográfico',
+   texto:'¿Qué fenómeno describe el colapso de infraestructura de transporte y servicios en grandes ciudades?',
+   opts:['Gentrificación','Concentración urbana','Segregación socioespacial','Asentamiento informal'],answer:1},
+  {tema:'Crecimiento Demográfico',
+   texto:'¿Qué regula la Ley General de Asentamientos Humanos según el material?',
+   opts:['El precio de la vivienda en zonas urbanas','El ordenamiento territorial aunque su aplicación es desigual','La construcción de vivienda social exclusivamente','Los programas de crédito hipotecario del gobierno'],answer:1},
+  {tema:'Crecimiento Demográfico',
+   texto:'¿Cuál es el caso emblemático de transformación urbana exitosa mencionado en el material?',
+   opts:['Ciudad Nenúlte, Hidalgo','Santa Fe, CDMX','Medellín, Colombia','Ecatepec, Estado de México'],answer:2},
+  {tema:'Crecimiento Demográfico',
+   texto:'¿Qué porcentaje de la población urbana de América Latina vive en asentamientos precarios según ONU-Hábitat?',
+   opts:['10%','15%','25%','35%'],answer:2},
+  {tema:'Crecimiento Demográfico',
+   texto:'¿Qué postura A defiende en el debate sobre vivienda y crecimiento urbano?',
+   opts:['Libertad de mercado y sector privado como motor del desarrollo','Intervención activa del Estado regulando el mercado inmobiliario y garantizando vivienda social','Eliminar todos los programas habitacionales por ineficientes','Dejar que la sociedad civil resuelva el problema sin intervención'],answer:1},
+  {tema:'Crecimiento Demográfico',
+   texto:'¿Qué argumento usa la postura B (libertad de mercado) en el debate del material?',
+   opts:['La vivienda es un derecho, no una mercancía','El Estado es ineficiente: los conjuntos habitacionales masivos fracasaron','Sin regulación, la gentrificación se profundiza','Los servicios públicos requieren inversión estatal sostenida'],answer:1},
+  {tema:'Crecimiento Demográfico',
+   texto:'¿Qué relación establece el material entre la calidad del territorio urbano y las relaciones de poder?',
+   opts:['No existe relación entre territorio y poder','Los grupos con capital económico y político influyen en la zonificación y permisos, mientras las comunidades populares enfrentan desalojos','El Estado garantiza igualdad de condiciones en todos los territorios','La calidad del territorio depende únicamente de la geografía'],answer:1},
+];
+
+// ── ESTADO ─────────────────────────────────────────────────────────
+let shuffled=[],current=0,answers={},allResults=[],studentName='',studentCode='',studentGroup='';
+let timerInterval=null,segundosRestantes=30*60;
+
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function shuffle(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+// ── CRONÓMETRO ─────────────────────────────────────────────────────
+function iniciarCronometro(){
+  segundosRestantes=30*60;
+  actualizarTimer();
+  timerInterval=setInterval(()=>{
+    segundosRestantes--;
+    actualizarTimer();
+    if(segundosRestantes<=0){
+      clearInterval(timerInterval);
+      alert('⏰ ¡Se acabó el tiempo! El examen se entregará automáticamente.');
+      entregarExamen();
+    }
+  },1000);
+}
+function actualizarTimer(){
+  const min=Math.floor(segundosRestantes/60);
+  const seg=segundosRestantes%60;
+  const el=document.getElementById('timer');
+  if(!el) return;
+  el.textContent=`⏱ ${String(min).padStart(2,'0')}:${String(seg).padStart(2,'0')}`;
+  el.className='timer';
+  if(segundosRestantes<=300) el.classList.add('danger');
+  else if(segundosRestantes<=600) el.classList.add('warning');
+}
+
+// ── INICIAR ────────────────────────────────────────────────────────
+function iniciarExamen(){
+  const nombre=document.getElementById('student-name').value.trim();
+  const grupo=document.getElementById('student-group').value;
+  const codigo=document.getElementById('student-code').value.trim().toUpperCase();
+  const errN=document.getElementById('name-err');
+  const errG=document.getElementById('group-err');
+  const errC=document.getElementById('code-err');
+  errN.style.display='none';errG.style.display='none';errC.style.display='none';
+  let ok=true;
+  if(!nombre){errN.style.display='block';ok=false;}
+  if(!grupo){errG.style.display='block';ok=false;}
+  if(!CODIGOS_VALIDOS.includes(codigo)){errC.textContent='⚠ Código inválido.';errC.style.display='block';ok=false;}
+  else if(codigosUsados.includes(codigo)){errC.textContent='⚠ Este código ya fue utilizado.';errC.style.display='block';ok=false;}
+  if(!ok) return;
+
+  const btn=document.getElementById('btn-start');
+  btn.disabled=true;btn.textContent='Verificando...';
+
+  fetch(SHEETS_URL+'?codigo='+codigo)
+    .then(r=>r.json())
+    .then(res=>{
+      if(res.usado){
+        errC.textContent='⚠ Este código ya fue utilizado.';
+        errC.style.display='block';
+        btn.disabled=false;btn.textContent='Comenzar examen';
+      } else {
+        studentName=nombre;studentCode=codigo;studentGroup=grupo;
+        codigosUsados.push(codigo);
+        sessionStorage.setItem('csUsados',JSON.stringify(codigosUsados));
+        btn.disabled=false;btn.textContent='Comenzar examen';
+        iniciarPreguntas();
+      }
+    })
+    .catch(()=>{
+      studentName=nombre;studentCode=codigo;studentGroup=grupo;
+      codigosUsados.push(codigo);
+      sessionStorage.setItem('csUsados',JSON.stringify(codigosUsados));
+      btn.disabled=false;btn.textContent='Comenzar examen';
+      iniciarPreguntas();
+    });
+}
+
+function iniciarPreguntas(){
+  if(timerInterval) clearInterval(timerInterval);
+  // Tomar 20 preguntas aleatorias del banco de 50
+  const seleccionadas=shuffle(BANCO).slice(0,20);
+  shuffled=seleccionadas.map(q=>{
+    const correctText=q.opts[q.answer];
+    const newOpts=shuffle(q.opts);
+    return{...q,opts:newOpts,answer:newOpts.indexOf(correctText)};
+  });
+  current=0;answers={};
+  iniciarCronometro();
+  showScreen('screen-exam');
+  renderQ();
+}
+
+// ── RENDER ─────────────────────────────────────────────────────────
+function renderQ(){
+  const q=shuffled[current],total=shuffled.length;
+  const pct=Math.round(((current+1)/total)*100);
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-text').textContent=(current+1)+'/'+total;
+  document.getElementById('q-indicator').textContent=(current+1)+' de '+total;
+  document.getElementById('btn-prev').disabled=current===0;
+  const isLast=current===total-1;
+  document.getElementById('btn-next').style.display=isLast?'none':'inline-block';
+  let sb=document.getElementById('btn-submit-dyn');
+  if(isLast){
+    if(!sb){sb=document.createElement('button');sb.id='btn-submit-dyn';sb.className='btn-nav btn-submit';sb.textContent='✓ Entregar';sb.onclick=entregarExamen;document.querySelector('.nav-bar').appendChild(sb);}
+  } else {if(sb) sb.remove();}
+
+  const sel=answers[current];
+  let html=`<div class="q-card"><div class="q-header"><div class="q-num">${current+1}</div><div style="flex:1"><span class="q-badge">Opción múltiple</span><p class="q-tema">${q.tema}</p><p class="q-text">${q.texto}</p></div></div>`;
+  html+=q.opts.map((o,i)=>`<div class="opt${sel===i?' selected':''}" onclick="selecMC(${i})"><div class="opt-circle"></div><span class="opt-text">${o}</span></div>`).join('');
+  html+='</div>';
+  document.getElementById('q-wrap').innerHTML=html;
+  window.scrollTo(0,0);
+}
+
+function selecMC(i){answers[current]=i;renderQ();}
+function navQ(dir){current=Math.max(0,Math.min(shuffled.length-1,current+dir));renderQ();}
+
+// ── ENTREGAR ───────────────────────────────────────────────────────
+function entregarExamen(){
+  if(timerInterval) clearInterval(timerInterval);
+  const sinResp=shuffled.filter((_,i)=>answers[i]===undefined).length;
+  if(sinResp>0&&segundosRestantes>0&&!confirm(`Tienes ${sinResp} pregunta(s) sin responder. ¿Entregar de todas formas?`)) return;
+  let correctas=0;
+  shuffled.forEach((q,i)=>{if(answers[i]===q.answer) correctas++;});
+  const total=shuffled.length;
+  const puntaje=Math.round((correctas/total)*100);
+  const resultado={
+    nombre:studentName,codigo:studentCode,grupo:studentGroup,
+    correctas,total,puntaje,
+    resultado:puntaje>=PASSING_SCORE?'Aprobado':'Reprobado',
+    aprobado:puntaje>=PASSING_SCORE,
+    hora:new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})
+  };
+  allResults.push(resultado);
+  document.getElementById('sending-overlay').style.display='flex';
+  try{
+    const form=document.createElement('form');
+    form.method='POST';form.action=SHEETS_URL;form.target='cs-iframe';form.style.display='none';
+    const field=document.createElement('input');field.type='hidden';field.name='payload';field.value=JSON.stringify(resultado);
+    form.appendChild(field);document.body.appendChild(form);
+    const iframe=document.createElement('iframe');iframe.name='cs-iframe';iframe.style.display='none';
+    document.body.appendChild(iframe);
+    iframe.onload=()=>{document.getElementById('sending-overlay').style.display='none';showScreen('screen-done');form.remove();iframe.remove();};
+    setTimeout(()=>{document.getElementById('sending-overlay').style.display='none';showScreen('screen-done');},4000);
+    form.submit();
+  }catch(err){document.getElementById('sending-overlay').style.display='none';showScreen('screen-done');}
+}
+
+// ── RESULTADOS ─────────────────────────────────────────────────────
+let grupoActivo='todos';
+function irAResultados(){document.getElementById('pass-input').value='';document.getElementById('pass-err').style.display='none';showScreen('screen-pass');}
+function verificarPass(){if(document.getElementById('pass-input').value===PASS) mostrarResultados();else document.getElementById('pass-err').style.display='block';}
+function filtrarGrupo(grupo,btn){
+  grupoActivo=grupo;
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  mostrarResultados(false);
+}
+function mostrarResultados(showScreen_=true){
+  if(showScreen_) showScreen('screen-results');
+  const filtrados=grupoActivo==='todos'?allResults:allResults.filter(r=>r.grupo===grupoActivo);
+  const total=allResults.length,aprobados=allResults.filter(r=>r.aprobado).length;
+  const prom=total?Math.round(allResults.reduce((a,r)=>a+r.puntaje,0)/total):0;
+  document.getElementById('stat-grid').innerHTML=`
+    <div class="stat-box"><div class="stat-n">${total}</div><div class="stat-l">Total alumnos</div></div>
+    <div class="stat-box"><div class="stat-n">${aprobados}</div><div class="stat-l">Aprobados</div></div>
+    <div class="stat-box"><div class="stat-n">${total-aprobados}</div><div class="stat-l">Reprobados</div></div>
+    <div class="stat-box"><div class="stat-n">${prom}</div><div class="stat-l">Promedio gral.</div></div>`;
+  const list=document.getElementById('results-list');
+  if(!filtrados.length){list.innerHTML='<p style="color:#888;font-size:14px">Sin resultados para este grupo.</p>';return;}
+  list.innerHTML=filtrados.map((r,i)=>`
+    <div class="result-row">
+      <span class="rname">${i+1}. ${r.nombre}</span>
+      <span class="rcode">${r.codigo}</span>
+      <span class="rgroup">${r.grupo}</span>
+      <span class="rscore">${r.correctas}/${r.total} · ${r.puntaje} pts</span>
+      <span class="pill ${r.aprobado?'pill-pass':'pill-fail'}">${r.aprobado?'Aprobado':'Reprobado'}</span>
+      <span style="font-size:12px;color:#aaa">${r.hora}</span>
+    </div>`).join('');
+}
+function exportarCSV(){
+  const h='Nombre,Código,Grupo,Correctas,Total,Puntaje,Resultado,Hora';
+  const rows=allResults.map(r=>`"${r.nombre}","${r.codigo}","${r.grupo}",${r.correctas},${r.total},${r.puntaje},"${r.resultado}","${r.hora}"`);
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent([h,...rows].join('\n'));
+  a.download='resultados_cs_3parcial.csv';a.click();
+}
+
+// Triple tap en logo para resultados
+let tapC=0,tapT=null;
+document.querySelector('.cover .logo').addEventListener('click',()=>{
+  tapC++;clearTimeout(tapT);tapT=setTimeout(()=>tapC=0,600);
+  if(tapC>=3){tapC=0;irAResultados();}
+});
+</script>
+</body>
+</html>
