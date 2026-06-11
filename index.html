@@ -162,7 +162,9 @@
   <div class="done-screen">
     <div class="done-icon">✓</div>
     <h2>Examen entregado</h2>
-    <p>Tu examen fue registrado correctamente. Tu maestra te comunicará los resultados cuando corresponda.</p>
+    <p id="done-puntaje" style="font-size:22px;font-weight:700;color:#6a1b4d;margin:12px 0"></p>
+    <p id="done-resultado" style="font-size:15px;font-weight:600;margin-bottom:8px"></p>
+    <p>Tu maestra te informará los detalles cuando corresponda.</p>
     <p style="margin-top:16px;font-size:13px;color:#aaa">Puedes cerrar esta página.</p>
   </div>
 </div>
@@ -208,7 +210,7 @@
 </div>
 
 <script>
-const SHEETS_URL='https://script.google.com/macros/s/AKfycbxaQERwtvcXpSQF8fbtpM-1MBI0aYj1t8cMAP3CroeOxwvI34R2qbZxZ9qh5-QlC3AB/exec';
+const SHEETS_URL='https://script.google.com/macros/s/AKfycby8evPqTOQemswPOHxsLO3DPmPkB558TwA-2E03skEUBpwUvjj25IjpnzC49j3ktFVC/exec';
 const PASS='profe2025';
 const PASSING_SCORE=60;
 const CODIGOS_VALIDOS=['CS-000',...Array.from({length:135},(_,i)=>'CS-'+String(i+1).padStart(3,'0'))];
@@ -283,11 +285,11 @@ const BANCO=[
    texto:'¿Cuál de los siguientes es un ejemplo de fuga de cerebros según el material?',
    opts:['Familias oaxaqueñas que migran a la Ciudad de México','Médicos e ingenieros mexicanos que trabajan en Canadá o España','Familias centroamericanas que solicitan asilo en México','Jóvenes que se trasladan de Oaxaca a Monterrey por empleos'],answer:1},
   {tema:'Migraciones',
-   texto:'¿Qué postura del Estado frente a la migración plantea la postura A del debate del material?',
-   opts:['Regular y restringir los flujos migratorios para proteger el orden interno','Facilitar la libre movilidad como respuesta a las desigualdades','Expulsar a todos los migrantes irregulares','Ignorar el fenómeno migratorio'],answer:1},
+   texto:'¿Qué institución mexicana se menciona en el material como representante del Estado en decisiones sobre solicitudes de asilo?',
+   opts:['CONEVAL','INM (Instituto Nacional de Migración)','CNDH','IMSS'],answer:1},
   {tema:'Migraciones',
-   texto:'¿Qué argumento utiliza la postura A (facilitar migración) en el debate del material?',
-   opts:['La fuga de cerebros debilita al país emisor','El Estado debe garantizar la seguridad interior','La libre movilidad es un derecho humano fundamental','Las normas jurídicas protegen a los ciudadanos nacionales'],answer:2},
+   texto:'¿Qué concepto describe la influencia que tiene la migración en las jerarquías sociales tanto en el país de origen como en el de destino?',
+   opts:['Gentrificación','Segregación socioespacial','Relaciones de poder','Desplazamiento forzado'],answer:2},
   {tema:'Migraciones',
    texto:'¿Qué efecto tienen las remesas según el material?',
    opts:['Generan dependencia económica sin beneficio real','Reducen la pobreza en las comunidades de origen','Provocan inflación en las zonas rurales','Solo benefician a los bancos internacionales'],answer:1},
@@ -324,8 +326,8 @@ const BANCO=[
    texto:'¿Qué son los derechos de tercera generación?',
    opts:['Derechos civiles y políticos surgidos en el siglo XVIII','Derechos económicos, sociales y culturales','Derechos colectivos que trascienden al individuo ante problemas globales','Derechos exclusivos de los ciudadanos nacionales'],answer:2},
   {tema:'Derechos Humanos',
-   texto:'¿Qué postura A defiende en el debate sobre derechos humanos del material?',
-   opts:['Se necesitan cambios estructurales en el sistema económico','El marco jurídico de derechos humanos es suficiente para garantizar el bienestar','Los derechos humanos son letra muerta sin redistribución económica','Las élites usan la ley para proteger sus privilegios'],answer:1},
+   texto:'¿Qué concepto describe el proceso mediante el cual se garantiza a todas las personas el acceso a oportunidades y recursos reduciendo brechas de desigualdad?',
+   opts:['Universalidad','Indivisibilidad','Inclusión económica y social','Bienestar individual'],answer:2},
   {tema:'Derechos Humanos',
    texto:'¿Qué organismo internacional se menciona en el material como parte del sistema de protección de derechos humanos?',
    opts:['FMI (Fondo Monetario Internacional)','CIDH (Comisión Interamericana de Derechos Humanos)','OTAN','Banco Mundial'],answer:1},
@@ -365,11 +367,11 @@ const BANCO=[
    texto:'¿Qué porcentaje de la población urbana de América Latina vive en asentamientos precarios según ONU-Hábitat?',
    opts:['10%','15%','25%','35%'],answer:2},
   {tema:'Crecimiento Demográfico',
-   texto:'¿Qué postura A defiende en el debate sobre vivienda y crecimiento urbano?',
-   opts:['Libertad de mercado y sector privado como motor del desarrollo','Intervención activa del Estado regulando el mercado inmobiliario y garantizando vivienda social','Eliminar todos los programas habitacionales por ineficientes','Dejar que la sociedad civil resuelva el problema sin intervención'],answer:1},
+   texto:'¿Qué describe el concepto de "ciudad dual o fragmentada" según el material?',
+   opts:['Una ciudad dividida entre zona industrial y zona habitacional','Una metrópolis que concentra tanto riqueza como pobreza extrema generando desigualdad socioespacial','Una ciudad con dos gobiernos locales','Una ciudad con alta migración interna y externa simultánea'],answer:1},
   {tema:'Crecimiento Demográfico',
-   texto:'¿Qué argumento usa la postura B (libertad de mercado) en el debate del material?',
-   opts:['La vivienda es un derecho, no una mercancía','El Estado es ineficiente: los conjuntos habitacionales masivos fracasaron','Sin regulación, la gentrificación se profundiza','Los servicios públicos requieren inversión estatal sostenida'],answer:1},
+   texto:'¿Qué problema describe el material cuando menciona que los asentamientos informales son los más afectados por el crecimiento urbano acelerado?',
+   opts:['Exceso de oferta de vivienda en zonas céntricas','Déficit de servicios públicos como agua, electricidad, drenaje y transporte','Sobrepoblación de zonas residenciales de alto nivel','Aumento desmedido del precio del suelo en zonas rurales'],answer:1},
   {tema:'Crecimiento Demográfico',
    texto:'¿Qué relación establece el material entre la calidad del territorio urbano y las relaciones de poder?',
    opts:['No existe relación entre territorio y poder','Los grupos con capital económico y político influyen en la zonificación y permisos, mientras las comunidades populares enfrentan desalojos','El Estado garantiza igualdad de condiciones en todos los territorios','La calidad del territorio depende únicamente de la geografía'],answer:1},
@@ -516,6 +518,10 @@ function entregarExamen(){
     hora:new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})
   };
   allResults.push(resultado);
+  // Mostrar calificación
+  document.getElementById('done-puntaje').textContent=`Tu calificación: ${puntaje} / 100`;
+  document.getElementById('done-resultado').textContent=puntaje>=PASSING_SCORE?'✅ Aprobado':'❌ Reprobado';
+  document.getElementById('done-resultado').style.color=puntaje>=PASSING_SCORE?'#2e7d32':'#c62828';
   document.getElementById('sending-overlay').style.display='flex';
   try{
     const form=document.createElement('form');
