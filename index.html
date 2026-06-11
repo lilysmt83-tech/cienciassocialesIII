@@ -210,7 +210,7 @@
 </div>
 
 <script>
-const SHEETS_URL='https://script.google.com/macros/s/AKfycby8evPqTOQemswPOHxsLO3DPmPkB558TwA-2E03skEUBpwUvjj25IjpnzC49j3ktFVC/exec';
+const SHEETS_URL='https://script.google.com/macros/s/AKfycbx5JdBAI0dAddFE9WgetS5r4Ebx2wDWloqEAHpJjZjCGgS7UtbeF_b9PmDA5VTNer_g/exec';
 const PASS='profe2025';
 const PASSING_SCORE=60;
 const CODIGOS_VALIDOS=['CS-000',...Array.from({length:135},(_,i)=>'CS-'+String(i+1).padStart(3,'0'))];
@@ -380,6 +380,23 @@ const BANCO=[
 // ── ESTADO ─────────────────────────────────────────────────────────
 let shuffled=[],current=0,answers={},allResults=[],studentName='',studentCode='',studentGroup='';
 let timerInterval=null,segundosRestantes=30*60;
+let salidasPantalla=0;
+
+// ── DETECCIÓN DE SALIDAS ───────────────────────────────────────────
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden && document.getElementById('screen-exam').classList.contains('active')){
+    salidasPantalla++;
+    if(salidasPantalla>=3){
+      // registrar en título para evidencia
+      document.title='⚠ Salida detectada – Examen CS';
+    }
+  }
+  if(!document.hidden && document.getElementById('screen-exam').classList.contains('active') && salidasPantalla>0){
+    let msg='⚠ Se detectó que saliste del examen.\n\nEsto quedará registrado en tu resultado.';
+    if(salidasPantalla>=3) msg='🚨 Has salido del examen '+salidasPantalla+' veces.\nEsto quedará registrado y será reportado a tu maestra.';
+    alert(msg);
+  }
+});
 
 function showScreen(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -515,6 +532,7 @@ function entregarExamen(){
     correctas,total,puntaje,
     resultado:puntaje>=PASSING_SCORE?'Aprobado':'Reprobado',
     aprobado:puntaje>=PASSING_SCORE,
+    salidas:salidasPantalla,
     hora:new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})
   };
   allResults.push(resultado);
@@ -565,6 +583,7 @@ function mostrarResultados(showScreen_=true){
       <span class="rgroup">${r.grupo}</span>
       <span class="rscore">${r.correctas}/${r.total} · ${r.puntaje} pts</span>
       <span class="pill ${r.aprobado?'pill-pass':'pill-fail'}">${r.aprobado?'Aprobado':'Reprobado'}</span>
+      <span style="font-size:12px;color:${r.salidas>=3?'#c62828':'#aaa'};font-weight:${r.salidas>=3?'700':'400'}">${r.salidas>0?'⚠ '+r.salidas+' salida(s)':''}</span>
       <span style="font-size:12px;color:#aaa">${r.hora}</span>
     </div>`).join('');
 }
@@ -585,3 +604,4 @@ document.querySelector('.cover .logo').addEventListener('click',()=>{
 </script>
 </body>
 </html>
+
